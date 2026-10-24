@@ -22,7 +22,9 @@ jobs:
         shell: pwsh
         run: |
           $env:QT_QPA_PLATFORM = "offscreen"
+          $env:DA_SELFTEST_OUT = "$PWD\selftest.txt"
           $p = Start-Process .\dist\DigitAcademy\DigitAcademy.exe -ArgumentList '--selftest' -Wait -PassThru
+          if (Test-Path selftest.txt) { Get-Content selftest.txt } else { Write-Host "No selftest output - exe crashed on start" }
           if ($p.ExitCode -ne 0) { throw "selftest failed: $($p.ExitCode)" }
       - run: choco install innosetup -y --no-progress
       - run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\DigitAcademy.iss'
