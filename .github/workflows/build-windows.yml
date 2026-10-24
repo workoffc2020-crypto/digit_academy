@@ -1,0 +1,32 @@
+name: Build Windows installer
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m pip install -r requirements-dev.txt
+      - name: Tests
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          python -m pytest tests -q -W ignore
+      - run: pyinstaller DigitAcademy.spec --noconfirm
+      - name: Self-test the built exe
+        shell: pwsh
+        run: |
+          $env:QT_QPA_PLATFORM = "offscreen"
+          $p = Start-Process .\dist\DigitAcademy\DigitAcademy.exe -ArgumentList '--selftest' -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "selftest failed: $($p.ExitCode)" }
+      - run: choco install innosetup -y --no-progress
+      - run: '& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer\DigitAcademy.iss'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: DigitAcademy_Setup
+          path: Output/DigitAcademy_Setup.exe
