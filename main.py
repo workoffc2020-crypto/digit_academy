@@ -21,7 +21,7 @@ def selftest() -> int:
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     log, ok = [], True
     try:
-        with tempfile.TemporaryDirectory() as t:
+        with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as t:
             from datetime import date
             from PySide6.QtWidgets import QApplication
             app = QApplication.instance() or QApplication([])
