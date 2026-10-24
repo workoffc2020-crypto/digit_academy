@@ -56,8 +56,18 @@ def selftest() -> int:
             ctx.close()
     except Exception as ex:                       # noqa: BLE001
         ok = False
+        import traceback
         log.append(f"ERROR: {ex!r}")
-    print("PASS" if ok else "FAIL", *log, sep="\n")
+        log.append(traceback.format_exc())
+    text = "\n".join(["PASS" if ok else "FAIL", *log])
+    out = os.environ.get("DA_SELFTEST_OUT")
+    if out:                                       # a windowed .exe has no console, so the build reads this file
+        with open(out, "w", encoding="utf-8") as f:
+            f.write(text)
+    try:
+        print(text)
+    except Exception:                             # noqa: BLE001
+        pass
     return 0 if ok else 1
 
 
